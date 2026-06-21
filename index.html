@@ -6,138 +6,370 @@
 <title>India Monitor — Real-time Dashboard</title>
 <style>
 :root {
-  --bg:       #050e1d;
-  --bg2:      #081529;
-  --card:     #0d1b2e;
-  --card2:    #111f35;
-  --border:   #1a2d4a;
-  --border2:  #243a5e;
-  --saffron:  #FF9933;
-  --saff-dim: rgba(255,153,51,0.12);
-  --green:    #22c55e;
-  --red:      #ef4444;
-  --text:     #e2e8f0;
-  --muted:    #64748b;
-  --muted2:   #94a3b8;
+  --bg:        #02080f;
+  --bg2:       #040d18;
+  --card:      rgba(10,22,40,0.85);
+  --card2:     rgba(15,30,55,0.9);
+  --border:    rgba(255,153,51,0.12);
+  --border2:   rgba(255,153,51,0.22);
+  --saffron:   #FF9933;
+  --saffron2:  #ffb347;
+  --igreen:    #138808;
+  --igreen2:   #1db510;
+  --green:     #22c55e;
+  --red:       #f43f5e;
+  --blue:      #38bdf8;
+  --text:      #f0f4f8;
+  --muted:     #5a6a7e;
+  --muted2:    #8099b4;
   --mono: ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
-  --sans: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --sans: 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(255,153,51,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(19,136,8,0.06) 0%, transparent 60%);
+}
+
+/* ── Dot grid overlay ── */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image: radial-gradient(rgba(255,153,51,0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events:none;
+  z-index:0;
+}
 
 /* ── Header ── */
-.hdr{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.hdr-l{display:flex;align-items:center;gap:12px;}
-.hdr-flag{font-size:22px;}
-.hdr-title{font-size:17px;font-weight:700;letter-spacing:-0.02em;}
-.hdr-title em{color:var(--saffron);font-style:normal;}
-.hdr-sub{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-top:1px;}
-.hdr-r{display:flex;align-items:center;gap:12px;}
-.hdr-time{font-family:var(--mono);font-size:11px;color:var(--muted);}
-.hdr-cd{font-family:var(--mono);font-size:10px;color:var(--muted);}
-.btn-refresh{background:var(--saff-dim);border:1px solid var(--saffron);color:var(--saffron);font-family:var(--mono);font-size:11px;font-weight:700;padding:6px 13px;border-radius:6px;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;transition:background 0.15s;}
-.btn-refresh:hover{background:rgba(255,153,51,0.22);}
-.btn-refresh:disabled{opacity:0.5;cursor:not-allowed;}
+.hdr {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: rgba(2,8,15,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.hdr::after {
+  content:'';
+  position:absolute;
+  bottom:0;left:0;right:0;
+  height:1px;
+  background: linear-gradient(90deg, transparent, var(--saffron), var(--igreen2), transparent);
+  opacity:0.4;
+}
+.hdr-l { display:flex; align-items:center; gap:14px; }
+.hdr-logo {
+  width:36px; height:36px; border-radius:10px;
+  background: linear-gradient(135deg, var(--saffron), var(--igreen));
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; flex-shrink:0;
+  box-shadow: 0 0 18px rgba(255,153,51,0.3);
+}
+.hdr-title { font-size:18px; font-weight:800; letter-spacing:-0.03em; }
+.hdr-title em {
+  font-style:normal;
+  background: linear-gradient(90deg, var(--saffron), var(--saffron2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hdr-sub { font-family:var(--mono); font-size:9.5px; text-transform:uppercase; letter-spacing:0.14em; color:var(--muted); margin-top:1px; }
+.hdr-r { display:flex; align-items:center; gap:14px; }
+.live-dot {
+  display:flex; align-items:center; gap:6px;
+  font-family:var(--mono); font-size:10px; color:var(--green);
+  text-transform:uppercase; letter-spacing:0.1em;
+}
+.live-dot::before {
+  content:'';
+  width:7px; height:7px; border-radius:50%;
+  background:var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+.hdr-time { font-family:var(--mono); font-size:11px; color:var(--muted2); }
+.hdr-cd   { font-family:var(--mono); font-size:10px; color:var(--muted); }
+.btn-refresh {
+  background: rgba(255,153,51,0.1);
+  border: 1px solid rgba(255,153,51,0.35);
+  color: var(--saffron);
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  padding: 7px 14px; border-radius:8px; cursor:pointer;
+  text-transform:uppercase; letter-spacing:0.06em;
+  transition: all 0.2s;
+  box-shadow: 0 0 12px rgba(255,153,51,0.1);
+}
+.btn-refresh:hover { background:rgba(255,153,51,0.2); box-shadow:0 0 20px rgba(255,153,51,0.25); }
+.btn-refresh:disabled { opacity:0.4; cursor:not-allowed; box-shadow:none; }
 
 /* ── Ticker ── */
-.ticker-wrap{background:var(--bg2);border-bottom:1px solid var(--border);overflow:hidden;height:32px;display:flex;align-items:center;}
-.ticker-track{display:flex;animation:ticker 80s linear infinite;white-space:nowrap;}
-.ticker-track:hover{animation-play-state:paused;}
-@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
-.t-item{display:inline-flex;align-items:center;gap:6px;padding:0 22px;font-family:var(--mono);font-size:11.5px;border-right:1px solid var(--border);}
-.t-lbl{color:var(--muted2);}
-.t-val{color:var(--text);font-weight:700;}
-.t-chg{font-weight:600;}
-.up{color:var(--green);}
-.down{color:var(--red);}
+.ticker-wrap {
+  background: rgba(4,13,24,0.9);
+  border-bottom: 1px solid var(--border);
+  overflow:hidden; height:34px;
+  display:flex; align-items:center;
+  position:relative; z-index:1;
+}
+.ticker-wrap::before,.ticker-wrap::after {
+  content:''; position:absolute; top:0; bottom:0; width:60px; z-index:2; pointer-events:none;
+}
+.ticker-wrap::before { left:0; background:linear-gradient(90deg,var(--bg2),transparent); }
+.ticker-wrap::after  { right:0; background:linear-gradient(-90deg,var(--bg2),transparent); }
+.ticker-track { display:flex; animation:ticker 90s linear infinite; white-space:nowrap; }
+.ticker-track:hover { animation-play-state:paused; }
+@keyframes ticker { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+.t-item {
+  display:inline-flex; align-items:center; gap:7px;
+  padding: 0 20px;
+  font-family:var(--mono); font-size:11.5px;
+  border-right: 1px solid rgba(255,153,51,0.08);
+}
+.t-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.t-lbl { color:var(--muted2); font-weight:500; }
+.t-val { color:var(--text); font-weight:700; }
+.t-chg { font-weight:600; font-size:11px; }
+.up   { color:var(--green); }
+.down { color:var(--red); }
 
-/* ── Grid ── */
-.main{padding:18px 20px 40px;display:grid;gap:14px;grid-template-columns:repeat(3,1fr);max-width:1360px;margin:0 auto;}
-.s2{grid-column:span 2;}
-.s3{grid-column:span 3;}
+/* ── Main grid ── */
+.main {
+  padding: 20px 22px 50px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3,1fr);
+  max-width: 1380px;
+  margin: 0 auto;
+  position:relative; z-index:1;
+}
+.s2 { grid-column:span 2; }
+.s3 { grid-column:span 3; }
 
-/* ── Card ── */
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.card-hdr{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--card2);}
-.card-title{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--saffron);}
-.card-badge{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);background:var(--border);padding:2px 7px;border-radius:4px;}
-.card-body{padding:14px 16px;}
+/* ── Card base ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  position:relative;
+}
+.card:hover {
+  border-color: var(--border2);
+  box-shadow: 0 0 30px rgba(255,153,51,0.06);
+}
+/* glowing top accent line per card type */
+.card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--saffron), transparent);
+  opacity:0;
+  transition: opacity 0.2s;
+}
+.card:hover::before { opacity:1; }
+.card-accent-green::before  { background: linear-gradient(90deg, transparent, var(--green), transparent); }
+.card-accent-blue::before   { background: linear-gradient(90deg, transparent, var(--blue), transparent); }
+.card-accent-gold::before   { background: linear-gradient(90deg, transparent, #f59e0b, transparent); }
+
+.card-hdr {
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items:center; justify-content:space-between;
+  background: rgba(15,30,55,0.5);
+}
+.card-title {
+  font-size: 10.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.14em;
+  color: var(--saffron);
+  display:flex; align-items:center; gap:7px;
+}
+.card-title .icon { font-size:13px; }
+.card-badge {
+  font-family:var(--mono); font-size:9px;
+  text-transform:uppercase; letter-spacing:0.06em;
+  color:var(--muted);
+  background: rgba(255,153,51,0.06);
+  border: 1px solid var(--border);
+  padding: 2px 8px; border-radius:20px;
+}
+.card-body { padding:16px 18px; }
 
 /* ── Skeleton ── */
-.sk{background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
-@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.sk {
+  background: linear-gradient(90deg, rgba(255,153,51,0.04) 25%, rgba(255,153,51,0.1) 50%, rgba(255,153,51,0.04) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s infinite;
+  border-radius:8px;
+}
+@keyframes shimmer { 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
 
 /* ── Markets ── */
-.mkt-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
-.mkt-row:last-child{border-bottom:none;}
-.mkt-name{font-size:13px;font-weight:700;}
-.mkt-sub{font-size:10.5px;color:var(--muted);margin-top:2px;}
-.mkt-price{font-family:var(--mono);font-size:19px;font-weight:700;text-align:right;}
-.mkt-chg{font-family:var(--mono);font-size:11.5px;font-weight:600;text-align:right;margin-top:3px;}
+.mkt-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 0; border-bottom:1px solid rgba(255,153,51,0.07);
+}
+.mkt-row:last-child { border-bottom:none; }
+.mkt-l { display:flex; align-items:center; gap:12px; }
+.mkt-badge {
+  width:40px; height:40px; border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:17px; flex-shrink:0;
+  background: rgba(255,153,51,0.1);
+  border: 1px solid rgba(255,153,51,0.2);
+}
+.mkt-name { font-size:14px; font-weight:700; letter-spacing:-0.01em; }
+.mkt-sub  { font-size:10.5px; color:var(--muted); margin-top:2px; }
+.mkt-price { font-family:var(--mono); font-size:22px; font-weight:800; text-align:right; letter-spacing:-0.02em; }
+.mkt-chg   { font-family:var(--mono); font-size:12px; font-weight:600; text-align:right; margin-top:4px; }
+.mkt-pill {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700;
+}
+.mkt-pill.up   { background:rgba(34,197,94,0.12);  color:var(--green); }
+.mkt-pill.down { background:rgba(244,63,94,0.12);  color:var(--red); }
 
-/* ── Shared row ── */
-.data-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
-.data-row:last-child{border-bottom:none;}
-.data-name{font-size:12.5px;font-weight:700;}
-.data-sub{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
-.data-r{text-align:right;}
-.data-price{font-family:var(--mono);font-size:14px;font-weight:700;}
-.data-chg{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:2px;}
+/* ── Shared data row ── */
+.data-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px solid rgba(255,153,51,0.07);
+}
+.data-row:last-child { border-bottom:none; }
+.data-l { display:flex; align-items:center; gap:10px; }
+.data-icon {
+  width:32px; height:32px; border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; flex-shrink:0;
+}
+.data-name { font-size:12.5px; font-weight:700; }
+.data-sub  { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:1px; }
+.data-r    { text-align:right; }
+.data-price{ font-family:var(--mono); font-size:14px; font-weight:700; }
+.data-pill {
+  display:inline-flex; align-items:center; gap:3px;
+  padding:2px 7px; border-radius:20px; font-size:10.5px; font-weight:700;
+  margin-top:3px; font-family:var(--mono);
+}
+.data-pill.up   { background:rgba(34,197,94,0.12);  color:var(--green); }
+.data-pill.down { background:rgba(244,63,94,0.12);  color:var(--red); }
 
 /* ── Forex ── */
-.fx-pair{font-family:var(--mono);font-size:12.5px;color:var(--muted2);font-weight:700;}
-.fx-rate{font-family:var(--mono);font-size:16px;font-weight:700;text-align:right;}
-.fx-note{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:2px;text-align:right;}
+.fx-flag { font-size:18px; flex-shrink:0; }
+.fx-pair { font-size:12.5px; font-weight:700; }
+.fx-sub  { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:1px; }
+.fx-rate { font-family:var(--mono); font-size:16px; font-weight:800; }
 
 /* ── Crypto ── */
-.cx-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border);}
-.cx-row:last-child{border-bottom:none;}
-.cx-l{display:flex;align-items:center;gap:9px;}
-.cx-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
-.cx-name{font-size:12.5px;font-weight:700;}
-.cx-sym{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:1px;}
-.cx-r{text-align:right;}
-.cx-price{font-family:var(--mono);font-size:13px;font-weight:700;}
-.cx-chg{font-family:var(--mono);font-size:11px;font-weight:600;margin-top:2px;}
+.cx-icon {
+  width:34px; height:34px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; flex-shrink:0;
+}
 
 /* ── Weather ── */
-.wx-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
-.wx-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 10px;text-align:center;}
-.wx-city{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;}
-.wx-emoji{font-size:32px;margin-bottom:6px;line-height:1;}
-.wx-temp{font-family:var(--mono);font-size:24px;font-weight:700;}
-.wx-desc{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.35;}
-.wx-meta{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:8px;display:flex;justify-content:center;gap:10px;}
+.wx-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.wx-card {
+  background: linear-gradient(145deg, rgba(10,22,40,0.9), rgba(15,30,55,0.8));
+  border: 1px solid var(--border);
+  border-radius:14px; padding:20px 12px 16px;
+  text-align:center;
+  transition: border-color 0.2s, transform 0.2s;
+  position:relative; overflow:hidden;
+}
+.wx-card:hover { border-color:var(--border2); transform:translateY(-2px); }
+.wx-card::before {
+  content:'';
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:60%; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+}
+.wx-city {
+  font-size:10px; font-weight:800; color:var(--muted2);
+  text-transform:uppercase; letter-spacing:0.12em; margin-bottom:12px;
+}
+.wx-emoji { font-size:36px; margin-bottom:8px; line-height:1; display:block; }
+.wx-temp  { font-family:var(--mono); font-size:28px; font-weight:800; letter-spacing:-0.02em; }
+.wx-deg   { font-size:16px; color:var(--muted2); }
+.wx-desc  { font-size:11px; color:var(--muted2); margin-top:6px; line-height:1.4; }
+.wx-meta  {
+  font-family:var(--mono); font-size:9.5px; color:var(--muted);
+  margin-top:10px; display:flex; justify-content:center; gap:12px;
+}
+.wx-meta span { display:flex; align-items:center; gap:3px; }
 
 /* ── News ── */
-.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
-.news-src-lbl{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--saffron);padding-bottom:9px;border-bottom:1px solid var(--border);margin-bottom:2px;}
-.news-item{padding:8px 0;border-bottom:1px solid var(--border);}
-.news-item:last-child{border-bottom:none;}
-.news-item a{font-size:12.5px;line-height:1.45;color:var(--text);text-decoration:none;display:block;}
-.news-item a:hover{color:var(--saffron);}
-.news-meta{font-family:var(--mono);font-size:9.5px;color:var(--muted);margin-top:4px;}
+.news-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.news-col { }
+.news-src {
+  display:flex; align-items:center; gap:8px;
+  font-size:10px; font-weight:800;
+  text-transform:uppercase; letter-spacing:0.12em;
+  color:var(--saffron);
+  padding-bottom:10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom:4px;
+}
+.news-src-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:var(--saffron);
+  box-shadow: 0 0 6px var(--saffron);
+}
+.news-item { padding:9px 0; border-bottom:1px solid rgba(255,153,51,0.07); }
+.news-item:last-child { border-bottom:none; }
+.news-item a {
+  font-size:12.5px; line-height:1.5; color:var(--text);
+  text-decoration:none; display:block; font-weight:500;
+  transition:color 0.15s;
+}
+.news-item a:hover { color:var(--saffron); }
+.news-meta { font-family:var(--mono); font-size:9.5px; color:var(--muted); margin-top:5px; }
 
-/* ── Section wrapper ── */
-.section-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-.section-body{padding:16px;}
+/* ── Section card ── */
+.section-card {
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; overflow:hidden;
+  backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+}
+.section-body { padding:16px 18px; }
 
 /* ── Error ── */
-.err{color:var(--red);font-family:var(--mono);font-size:11.5px;padding:12px 0;text-align:center;}
+.err {
+  color:var(--red); font-family:var(--mono); font-size:11.5px;
+  padding:16px; text-align:center;
+  background:rgba(244,63,94,0.05); border-radius:8px;
+}
 
 /* ── Responsive ── */
-@media(max-width:960px){
+@media(max-width:1024px){
   .main{grid-template-columns:1fr 1fr;}
   .s2,.s3{grid-column:span 2;}
   .wx-grid{grid-template-columns:repeat(2,1fr);}
   .news-grid{grid-template-columns:1fr 1fr;}
 }
-@media(max-width:600px){
-  .main{grid-template-columns:1fr;padding:12px 12px 32px;}
+@media(max-width:640px){
+  .main{grid-template-columns:1fr;padding:12px 14px 40px;}
   .s2,.s3{grid-column:span 1;}
   .wx-grid{grid-template-columns:repeat(2,1fr);}
   .news-grid{grid-template-columns:1fr;}
-  .hdr-sub,.hdr-cd{display:none;}
+  .hdr-sub,.hdr-cd,.live-dot{display:none;}
+  .mkt-price{font-size:18px;}
 }
 </style>
 </head>
@@ -145,13 +377,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 
 <header class="hdr">
   <div class="hdr-l">
-    <span class="hdr-flag">🇮🇳</span>
+    <div class="hdr-logo">🇮🇳</div>
     <div>
       <div class="hdr-title">India <em>Monitor</em></div>
       <div class="hdr-sub">Real-time dashboard</div>
     </div>
   </div>
   <div class="hdr-r">
+    <div class="live-dot">Live</div>
     <span class="hdr-time" id="hdr-time">—</span>
     <span class="hdr-cd"  id="hdr-cd"></span>
     <button class="btn-refresh" id="btn-refresh" onclick="refresh()">↻ Refresh</button>
@@ -162,99 +395,102 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 
 <div class="main">
 
-  <!-- Markets (span 2) -->
-  <div class="card s2">
+  <!-- Markets -->
+  <div class="card s2 card-accent-gold">
     <div class="card-hdr">
-      <span class="card-title">📈 Indian Markets</span>
+      <span class="card-title"><span class="icon">📈</span> Indian Markets</span>
       <span class="card-badge">NSE · BSE</span>
     </div>
     <div class="card-body" id="markets-body">
-      <div class="sk" style="height:62px;margin-bottom:12px;"></div>
-      <div class="sk" style="height:62px;"></div>
+      <div class="sk" style="height:68px;margin-bottom:12px;"></div>
+      <div class="sk" style="height:68px;"></div>
     </div>
   </div>
 
   <!-- Crypto -->
-  <div class="card">
+  <div class="card card-accent-blue">
     <div class="card-hdr">
-      <span class="card-title">₿ Crypto in ₹</span>
+      <span class="card-title"><span class="icon">₿</span> Crypto in ₹</span>
       <span class="card-badge">CoinGecko</span>
     </div>
     <div class="card-body" id="crypto-body">
-      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:44px;"></div>
+      <div class="sk" style="height:48px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:48px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:48px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:48px;"></div>
     </div>
   </div>
 
   <!-- Forex -->
   <div class="card">
     <div class="card-hdr">
-      <span class="card-title">💱 Exchange Rates</span>
+      <span class="card-title"><span class="icon">💱</span> Exchange Rates</span>
       <span class="card-badge">vs ₹ INR</span>
     </div>
     <div class="card-body" id="forex-body">
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;"></div>
     </div>
   </div>
 
   <!-- Top Stocks -->
-  <div class="card">
+  <div class="card card-accent-green">
     <div class="card-hdr">
-      <span class="card-title">🏢 Top Stocks</span>
+      <span class="card-title"><span class="icon">🏢</span> Top Stocks</span>
       <span class="card-badge">NSE</span>
     </div>
     <div class="card-body" id="stocks-body">
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;"></div>
     </div>
   </div>
 
   <!-- Commodities -->
-  <div class="card">
+  <div class="card card-accent-gold">
     <div class="card-hdr">
-      <span class="card-title">🪙 Commodities</span>
+      <span class="card-title"><span class="icon">🪙</span> Commodities</span>
       <span class="card-badge">Gold · Silver · Crude</span>
     </div>
     <div class="card-body" id="commodity-body">
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;margin-bottom:10px;"></div>
-      <div class="sk" style="height:40px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;margin-bottom:10px;"></div>
+      <div class="sk" style="height:44px;"></div>
     </div>
   </div>
 
-  <!-- Weather (span 3) -->
+  <!-- Weather -->
   <div class="section-card s3">
     <div class="card-hdr">
-      <span class="card-title">🌤 Weather — Major Cities</span>
-      <span class="card-badge">wttr.in</span>
+      <span class="card-title"><span class="icon">🌤</span> Weather — Major Cities</span>
+      <span class="card-badge">Open-Meteo</span>
     </div>
     <div class="section-body">
       <div class="wx-grid" id="weather-grid">
-        <div class="sk" style="height:130px;border-radius:10px;"></div>
-        <div class="sk" style="height:130px;border-radius:10px;"></div>
-        <div class="sk" style="height:130px;border-radius:10px;"></div>
-        <div class="sk" style="height:130px;border-radius:10px;"></div>
+        <div class="sk" style="height:150px;border-radius:14px;"></div>
+        <div class="sk" style="height:150px;border-radius:14px;"></div>
+        <div class="sk" style="height:150px;border-radius:14px;"></div>
+        <div class="sk" style="height:150px;border-radius:14px;"></div>
       </div>
     </div>
   </div>
 
-  <!-- News (span 3) -->
+  <!-- News -->
   <div class="section-card s3">
     <div class="card-hdr">
-      <span class="card-title">📰 India News</span>
+      <span class="card-title"><span class="icon">📰</span> India News</span>
       <span class="card-badge">NDTV · Economic Times · The Hindu</span>
     </div>
     <div class="section-body">
       <div class="news-grid" id="news-grid">
-        <div class="sk" style="height:220px;border-radius:8px;"></div>
-        <div class="sk" style="height:220px;border-radius:8px;"></div>
-        <div class="sk" style="height:220px;border-radius:8px;"></div>
+        <div class="sk" style="height:240px;border-radius:10px;"></div>
+        <div class="sk" style="height:240px;border-radius:10px;"></div>
+        <div class="sk" style="height:240px;border-radius:10px;"></div>
       </div>
     </div>
   </div>
@@ -263,12 +499,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 
 <script>
 const GET = url => 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
-
-// Try proxies in order until one returns valid JSON
 const YF_PROXIES = [
-  url => 'https://corsproxy.io/?'                          + encodeURIComponent(url),
-  url => 'https://api.codetabs.com/v1/proxy?quest='        + encodeURIComponent(url),
-  url => 'https://api.allorigins.win/raw?url='             + encodeURIComponent(url),
+  url => 'https://corsproxy.io/?'                   + encodeURIComponent(url),
+  url => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(url),
+  url => 'https://api.allorigins.win/raw?url='      + encodeURIComponent(url),
 ];
 
 // ── Formatters ────────────────────────────────────────────
@@ -287,22 +521,21 @@ function fmtPct(n) {
   return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
 }
 function cls(n)   { return n == null ? '' : (n >= 0 ? 'up' : 'down'); }
-function arrow(n) { return n == null ? '' : (n >= 0 ? ' ▲' : ' ▼'); }
+function arrow(n) { return n == null ? '' : (n >= 0 ? '▲' : '▼'); }
 
 function wxEmoji(desc) {
   const d = (desc || '').toLowerCase();
-  if (d.includes('thunder') || d.includes('storm'))          return '⛈️';
-  if (d.includes('heavy rain') || d.includes('torrential'))  return '🌧️';
-  if (d.includes('drizzle') || d.includes('light rain'))     return '🌦️';
-  if (d.includes('rain') || d.includes('shower'))            return '🌧️';
-  if (d.includes('fog') || d.includes('mist') || d.includes('haz')) return '🌫️';
-  if (d.includes('snow'))                                    return '❄️';
-  if (d.includes('partly') || d.includes('overcast'))        return '⛅';
-  if (d.includes('cloud'))                                   return '☁️';
-  if (d.includes('sun') || d.includes('clear'))              return '☀️';
+  if (d.includes('thunder') || d.includes('storm'))         return '⛈️';
+  if (d.includes('heavy rain') || d.includes('torrential')) return '🌧️';
+  if (d.includes('drizzle') || d.includes('light rain'))    return '🌦️';
+  if (d.includes('rain') || d.includes('shower'))           return '🌧️';
+  if (d.includes('fog') || d.includes('mist'))              return '🌫️';
+  if (d.includes('snow'))                                   return '❄️';
+  if (d.includes('partly') || d.includes('overcast'))       return '⛅';
+  if (d.includes('cloud'))                                  return '☁️';
+  if (d.includes('sun') || d.includes('clear'))             return '☀️';
   return '🌡️';
 }
-
 function relTime(str) {
   if (!str) return '';
   const d = new Date(str);
@@ -313,7 +546,6 @@ function relTime(str) {
   if (m < 1440) return Math.round(m / 60) + 'h ago';
   return Math.round(m / 1440) + 'd ago';
 }
-
 function esc(s) {
   const d = document.createElement('div');
   d.textContent = s ?? '';
@@ -326,7 +558,6 @@ async function fetchJSON(url) {
   if (!res.ok) throw new Error(res.status);
   return res.json();
 }
-
 async function fetchRSS(feedUrl) {
   const res  = await fetch(GET(feedUrl));
   const data = await res.json();
@@ -338,9 +569,7 @@ async function fetchRSS(feedUrl) {
     const title = item.querySelector('title')?.textContent?.trim();
     let link = item.querySelector('link')?.textContent?.trim()
             || item.querySelector('link')?.getAttribute('href')
-            || item.querySelector('guid')?.textContent?.trim()
-            || '';
-    // Fallback: regex scan for link text (handles oddly-placed nodes)
+            || item.querySelector('guid')?.textContent?.trim() || '';
     if (!link) {
       const m = item.innerHTML.match(/<link[^>]*>([^<]+)<\/link>/i);
       if (m) link = m[1].trim();
@@ -352,11 +581,9 @@ async function fetchRSS(feedUrl) {
 }
 
 // ── API loaders ───────────────────────────────────────────
-// Fetch a Yahoo Finance symbol trying multiple proxies until one works
 async function loadYahooChart(symbol) {
   const yfUrl = 'https://query2.finance.yahoo.com/v8/finance/chart/'
     + encodeURIComponent(symbol) + '?interval=1d&range=1d';
-
   for (const makeProxy of YF_PROXIES) {
     try {
       const controller = new AbortController();
@@ -372,25 +599,21 @@ async function loadYahooChart(symbol) {
       const change    = price - prev;
       const changePct = prev ? (change / prev) * 100 : 0;
       return { symbol, shortName: meta.shortName || symbol, regularMarketPrice: price, regularMarketChange: change, regularMarketChangePercent: changePct };
-    } catch (_) { /* try next proxy */ }
+    } catch (_) {}
   }
   throw new Error('All proxies failed for ' + symbol);
 }
-
 async function loadYahooQuotes(symbolList) {
   const syms    = symbolList.split(',').map(s => s.trim());
   const results = await Promise.allSettled(syms.map(s => loadYahooChart(s)));
   return results.filter(r => r.status === 'fulfilled').map(r => r.value);
 }
-
 async function loadForex() {
-  // from=INR gives: 1 INR = X foreign. Invert → 1 foreign = Y INR
   const d = await fetchJSON('https://api.frankfurter.app/latest?from=INR&to=USD,EUR,GBP,JPY,AED');
   const out = {};
   for (const [cur, rate] of Object.entries(d.rates || {})) out[cur] = 1 / rate;
   return out;
 }
-
 function loadCrypto() {
   return fetchJSON(
     'https://api.coingecko.com/api/v3/simple/price' +
@@ -398,76 +621,77 @@ function loadCrypto() {
     '&vs_currencies=inr&include_24hr_change=true'
   );
 }
-
-// Open-Meteo: free, no key, CORS-friendly, no proxy needed
 const CITIES_COORDS = {
-  'Delhi':     { lat: 28.61, lon: 77.21 },
-  'Mumbai':    { lat: 19.08, lon: 72.88 },
-  'Bengaluru': { lat: 12.97, lon: 77.59 },
-  'Chennai':   { lat: 13.08, lon: 80.27 },
+  'Delhi':     { lat:28.61, lon:77.21 },
+  'Mumbai':    { lat:19.08, lon:72.88 },
+  'Bengaluru': { lat:12.97, lon:77.59 },
+  'Chennai':   { lat:13.08, lon:80.27 },
 };
 function wmoDesc(code) {
-  if (code === 0)            return 'Clear sky';
-  if (code <= 2)             return 'Partly cloudy';
-  if (code === 3)            return 'Overcast';
-  if (code <= 49)            return 'Foggy';
-  if (code <= 59)            return 'Drizzle';
-  if (code <= 69)            return 'Rainy';
-  if (code <= 79)            return 'Snow';
-  if (code <= 82)            return 'Rain showers';
-  if (code <= 84)            return 'Heavy showers';
-  if (code <= 99)            return 'Thunderstorm';
+  if (code === 0)   return 'Clear sky';
+  if (code <= 2)    return 'Partly cloudy';
+  if (code === 3)   return 'Overcast';
+  if (code <= 49)   return 'Foggy';
+  if (code <= 59)   return 'Drizzle';
+  if (code <= 69)   return 'Rainy';
+  if (code <= 79)   return 'Snow';
+  if (code <= 82)   return 'Rain showers';
+  if (code <= 84)   return 'Heavy showers';
+  if (code <= 99)   return 'Thunderstorm';
   return 'Unknown';
 }
 async function loadWeather(city) {
   const { lat, lon } = CITIES_COORDS[city] || {};
   if (!lat) throw new Error('Unknown city');
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-    `&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&timezone=Asia%2FKolkata`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&timezone=Asia%2FKolkata`;
   const d = await fetchJSON(url);
   const c = d.current;
-  return {
-    temp:     Math.round(c.temperature_2m),
-    humidity: c.relativehumidity_2m,
-    wind:     Math.round(c.windspeed_10m),
-    desc:     wmoDesc(c.weathercode),
-  };
+  return { temp:Math.round(c.temperature_2m), humidity:c.relativehumidity_2m, wind:Math.round(c.windspeed_10m), desc:wmoDesc(c.weathercode) };
 }
 
 // ── Renderers ─────────────────────────────────────────────
 function renderMarkets(rows) {
-  const names = { '^NSEI': 'NIFTY 50',  '^BSESN': 'SENSEX' };
-  const subs  = { '^NSEI': 'National Stock Exchange', '^BSESN': 'Bombay Stock Exchange' };
+  const names = { '^NSEI':'NIFTY 50', '^BSESN':'SENSEX' };
+  const subs  = { '^NSEI':'National Stock Exchange', '^BSESN':'Bombay Stock Exchange' };
+  const icons = { '^NSEI':'📊', '^BSESN':'🏛️' };
   document.getElementById('markets-body').innerHTML = rows.length
     ? rows.map(m => {
         const pct = m.regularMarketChangePercent, chg = m.regularMarketChange;
         return `<div class="mkt-row">
-          <div>
-            <div class="mkt-name">${esc(names[m.symbol] || m.shortName)}</div>
-            <div class="mkt-sub">${esc(subs[m.symbol] || m.symbol)}</div>
+          <div class="mkt-l">
+            <div class="mkt-badge">${icons[m.symbol] || '📈'}</div>
+            <div>
+              <div class="mkt-name">${esc(names[m.symbol] || m.shortName)}</div>
+              <div class="mkt-sub">${esc(subs[m.symbol] || m.symbol)}</div>
+            </div>
           </div>
           <div>
             <div class="mkt-price">${fmtNum(m.regularMarketPrice)}</div>
-            <div class="mkt-chg ${cls(pct)}">${chg >= 0 ? '+' : ''}${fmtNum(chg)} (${fmtPct(pct)})${arrow(pct)}</div>
+            <div style="text-align:right;margin-top:5px;">
+              <span class="mkt-pill ${cls(pct)}">${arrow(pct)} ${chg >= 0 ? '+' : ''}${fmtNum(chg)} &nbsp; ${fmtPct(pct)}</span>
+            </div>
           </div>
         </div>`;
       }).join('')
-    : '<div class="err">Market data unavailable.</div>';
+    : '<div class="err">Market data unavailable. Markets may be closed.</div>';
 }
 
 function renderStocks(rows) {
   document.getElementById('stocks-body').innerHTML = rows.length
     ? rows.map(s => {
         const pct  = s.regularMarketChangePercent;
-        const name = (s.shortName || s.symbol || '').replace(' NSE', '');
+        const name = (s.shortName || s.symbol || '').replace(' NSE','').replace('.NS','');
         return `<div class="data-row">
-          <div>
-            <div class="data-name">${esc(name)}</div>
-            <div class="data-sub">${esc(s.symbol?.replace('.NS', '') || '')}</div>
+          <div class="data-l">
+            <div class="data-icon" style="background:rgba(19,136,8,0.12);border:1px solid rgba(19,136,8,0.2);">🏢</div>
+            <div>
+              <div class="data-name">${esc(name)}</div>
+              <div class="data-sub">${esc(s.symbol?.replace('.NS','') || '')}</div>
+            </div>
           </div>
           <div class="data-r">
             <div class="data-price">₹${fmtNum(s.regularMarketPrice)}</div>
-            <div class="data-chg ${cls(pct)}">${fmtPct(pct)}${arrow(pct)}</div>
+            <div style="text-align:right;"><span class="data-pill ${cls(pct)}">${arrow(pct)} ${fmtPct(pct)}</span></div>
           </div>
         </div>`;
       }).join('')
@@ -476,19 +700,24 @@ function renderStocks(rows) {
 
 function renderForex(pairs) {
   const cfg = [
-    { key: 'USD', flag: '🇺🇸', label: 'US Dollar'       },
-    { key: 'EUR', flag: '🇪🇺', label: 'Euro'             },
-    { key: 'GBP', flag: '🇬🇧', label: 'British Pound'    },
-    { key: 'JPY', flag: '🇯🇵', label: 'Japanese Yen'     },
-    { key: 'AED', flag: '🇦🇪', label: 'UAE Dirham'       },
+    { key:'USD', flag:'🇺🇸', label:'US Dollar'    },
+    { key:'EUR', flag:'🇪🇺', label:'Euro'          },
+    { key:'GBP', flag:'🇬🇧', label:'British Pound' },
+    { key:'JPY', flag:'🇯🇵', label:'Japanese Yen'  },
+    { key:'AED', flag:'🇦🇪', label:'UAE Dirham'    },
   ];
   document.getElementById('forex-body').innerHTML = cfg.map(c => {
     const rate = pairs[c.key];
     return `<div class="data-row">
-      <div class="fx-pair">${c.flag} ${c.key}/INR</div>
-      <div>
+      <div class="data-l">
+        <span class="fx-flag">${c.flag}</span>
+        <div>
+          <div class="fx-pair">${c.key} / INR</div>
+          <div class="fx-sub">${c.label}</div>
+        </div>
+      </div>
+      <div class="data-r">
         <div class="fx-rate">₹${rate ? rate.toFixed(2) : '—'}</div>
-        <div class="fx-note">1 ${c.key} = ₹${rate ? rate.toFixed(2) : '—'}</div>
       </div>
     </div>`;
   }).join('');
@@ -496,42 +725,53 @@ function renderForex(pairs) {
 
 function renderCrypto(data) {
   const cfg = [
-    { id: 'bitcoin',     name: 'Bitcoin',  sym: 'BTC', icon: '🟠', bg: 'rgba(247,147,26,0.18)'  },
-    { id: 'ethereum',    name: 'Ethereum', sym: 'ETH', icon: '🔵', bg: 'rgba(98,126,234,0.18)'   },
-    { id: 'binancecoin', name: 'BNB',      sym: 'BNB', icon: '🟡', bg: 'rgba(240,185,11,0.18)'   },
-    { id: 'ripple',      name: 'XRP',      sym: 'XRP', icon: '⚫', bg: 'rgba(100,100,100,0.18)'  },
+    { id:'bitcoin',     name:'Bitcoin',  sym:'BTC', icon:'🟠', bg:'rgba(247,147,26,0.15)',  border:'rgba(247,147,26,0.3)'  },
+    { id:'ethereum',    name:'Ethereum', sym:'ETH', icon:'🔵', bg:'rgba(98,126,234,0.15)',   border:'rgba(98,126,234,0.3)'  },
+    { id:'binancecoin', name:'BNB',      sym:'BNB', icon:'🟡', bg:'rgba(240,185,11,0.15)',   border:'rgba(240,185,11,0.3)'  },
+    { id:'ripple',      name:'XRP',      sym:'XRP', icon:'⚫', bg:'rgba(120,120,120,0.15)',  border:'rgba(120,120,120,0.3)' },
   ];
   document.getElementById('crypto-body').innerHTML = cfg.map(c => {
     const d = data[c.id]; if (!d) return '';
     const pct = d.inr_24h_change;
-    return `<div class="cx-row">
-      <div class="cx-l">
-        <div class="cx-icon" style="background:${c.bg}">${c.icon}</div>
-        <div><div class="cx-name">${c.name}</div><div class="cx-sym">${c.sym}</div></div>
+    return `<div class="data-row">
+      <div class="data-l">
+        <div class="cx-icon" style="background:${c.bg};border:1px solid ${c.border};">${c.icon}</div>
+        <div>
+          <div class="data-name">${c.name}</div>
+          <div class="data-sub">${c.sym}</div>
+        </div>
       </div>
-      <div class="cx-r">
-        <div class="cx-price">${fmtINR(d.inr)}</div>
-        <div class="cx-chg ${cls(pct)}">${fmtPct(pct)}${arrow(pct)}</div>
+      <div class="data-r">
+        <div class="data-price">${fmtINR(d.inr)}</div>
+        <div style="text-align:right;"><span class="data-pill ${cls(pct)}">${arrow(pct)} ${fmtPct(pct)}</span></div>
       </div>
     </div>`;
   }).join('');
 }
 
 function renderCommodities(rows, usdInr) {
-  const labels = { 'GC=F': '🥇 Gold (per oz)', 'SI=F': '🥈 Silver (per oz)', 'CL=F': '🛢️ Crude Oil (bbl)' };
+  const meta = {
+    'GC=F': { label:'Gold',      sub:'per troy oz',    icon:'🥇', bg:'rgba(245,158,11,0.12)', border:'rgba(245,158,11,0.25)' },
+    'SI=F': { label:'Silver',    sub:'per troy oz',    icon:'🥈', bg:'rgba(148,163,184,0.12)',border:'rgba(148,163,184,0.25)'},
+    'CL=F': { label:'Crude Oil', sub:'per barrel WTI', icon:'🛢️', bg:'rgba(100,100,100,0.12)',border:'rgba(100,100,100,0.25)'},
+  };
   document.getElementById('commodity-body').innerHTML = rows.length
     ? rows.map(c => {
+        const m = meta[c.symbol] || { label:c.symbol, sub:'', icon:'📦', bg:'rgba(255,153,51,0.1)', border:'rgba(255,153,51,0.2)' };
         const pct      = c.regularMarketChangePercent;
         const priceUsd = c.regularMarketPrice;
         const priceInr = usdInr && priceUsd ? priceUsd * usdInr : null;
         return `<div class="data-row">
-          <div>
-            <div class="data-name">${esc(labels[c.symbol] || c.symbol)}</div>
-            <div class="data-sub">$${priceUsd?.toFixed(2) || '—'} USD</div>
+          <div class="data-l">
+            <div class="data-icon" style="background:${m.bg};border:1px solid ${m.border};">${m.icon}</div>
+            <div>
+              <div class="data-name">${m.label}</div>
+              <div class="data-sub">$${priceUsd?.toFixed(2) || '—'} · ${m.sub}</div>
+            </div>
           </div>
           <div class="data-r">
             <div class="data-price">${priceInr ? '₹' + fmtNum(priceInr) : '—'}</div>
-            <div class="data-chg ${cls(pct)}">${fmtPct(pct)}${arrow(pct)}</div>
+            <div style="text-align:right;"><span class="data-pill ${cls(pct)}">${arrow(pct)} ${fmtPct(pct)}</span></div>
           </div>
         </div>`;
       }).join('')
@@ -543,14 +783,17 @@ function renderWeather(results) {
     data
       ? `<div class="wx-card">
           <div class="wx-city">${esc(city)}</div>
-          <div class="wx-emoji">${wxEmoji(data.desc)}</div>
-          <div class="wx-temp">${data.temp}°C</div>
+          <span class="wx-emoji">${wxEmoji(data.desc)}</span>
+          <div class="wx-temp">${data.temp}<span class="wx-deg">°C</span></div>
           <div class="wx-desc">${esc(data.desc)}</div>
-          <div class="wx-meta"><span>💧${data.humidity}%</span><span>💨${data.wind} km/h</span></div>
+          <div class="wx-meta">
+            <span>💧 ${data.humidity}%</span>
+            <span>💨 ${data.wind} km/h</span>
+          </div>
         </div>`
       : `<div class="wx-card">
           <div class="wx-city">${esc(city)}</div>
-          <div class="wx-emoji">❓</div>
+          <span class="wx-emoji">❓</span>
           <div class="wx-desc" style="color:var(--red)">Unavailable</div>
         </div>`
   ).join('');
@@ -558,8 +801,8 @@ function renderWeather(results) {
 
 function renderNews(sources) {
   document.getElementById('news-grid').innerHTML = sources.map(({ label, items }) =>
-    `<div>
-      <div class="news-src-lbl">${esc(label)}</div>
+    `<div class="news-col">
+      <div class="news-src"><span class="news-src-dot"></span>${esc(label)}</div>
       ${items?.length
         ? items.map(it => `<div class="news-item">
             <a href="${esc(it.link)}" target="_blank" rel="noopener">${esc(it.title)}</a>
@@ -573,15 +816,17 @@ function renderNews(sources) {
 
 function renderTicker(markets, forex, crypto) {
   const items = [];
+  const dotColor = n => n >= 0 ? 'var(--green)' : 'var(--red)';
   markets.forEach(m => {
     const pct = m.regularMarketChangePercent;
     items.push(`<span class="t-item">
+      <span class="t-dot" style="background:${dotColor(pct)};box-shadow:0 0 6px ${dotColor(pct)};"></span>
       <span class="t-lbl">${esc(m.shortName || m.symbol)}</span>
       <span class="t-val">${fmtNum(m.regularMarketPrice)}</span>
-      <span class="t-chg ${cls(pct)}">${fmtPct(pct)}${arrow(pct)}</span>
+      <span class="t-chg ${cls(pct)}">${fmtPct(pct)} ${arrow(pct)}</span>
     </span>`);
   });
-  const fxShow = { USD: '🇺🇸 USD', EUR: '🇪🇺 EUR', GBP: '🇬🇧 GBP', AED: '🇦🇪 AED' };
+  const fxShow = { USD:'🇺🇸 USD', EUR:'🇪🇺 EUR', GBP:'🇬🇧 GBP', AED:'🇦🇪 AED' };
   Object.entries(forex).forEach(([cur, rate]) => {
     if (!fxShow[cur]) return;
     items.push(`<span class="t-item">
@@ -589,11 +834,12 @@ function renderTicker(markets, forex, crypto) {
       <span class="t-val">₹${rate.toFixed(2)}</span>
     </span>`);
   });
-  const cxMeta = { bitcoin: { sym: 'BTC', icon: '🟠' }, ethereum: { sym: 'ETH', icon: '🔵' } };
+  const cxMeta = { bitcoin:{sym:'BTC',icon:'🟠'}, ethereum:{sym:'ETH',icon:'🔵'} };
   Object.entries(crypto).forEach(([id, d]) => {
     const m = cxMeta[id]; if (!m) return;
     const pct = d.inr_24h_change;
     items.push(`<span class="t-item">
+      <span class="t-dot" style="background:${dotColor(pct)};box-shadow:0 0 6px ${dotColor(pct)};"></span>
       <span class="t-lbl">${m.icon} ${m.sym}/INR</span>
       <span class="t-val">${fmtINR(d.inr)}</span>
       <span class="t-chg ${cls(pct)}">${fmtPct(pct)}</span>
@@ -632,11 +878,11 @@ async function refresh() {
     wxDelhi, wxMumbai, wxBengaluru, wxChennai,
     ndtv, et, hindu
   ] = await Promise.all([
-    loadYahooQuotes('^NSEI,^BSESN')                                   .catch(() => []),
+    loadYahooQuotes('^NSEI,^BSESN')                                    .catch(() => []),
     loadYahooQuotes('RELIANCE.NS,TCS.NS,HDFCBANK.NS,INFY.NS,WIPRO.NS').catch(() => []),
-    loadForex()                                                        .catch(() => ({})),
-    loadCrypto()                                                       .catch(() => ({})),
-    loadYahooQuotes('GC=F,SI=F,CL=F')                                 .catch(() => []),
+    loadForex()                                                         .catch(() => ({})),
+    loadCrypto()                                                        .catch(() => ({})),
+    loadYahooQuotes('GC=F,SI=F,CL=F')                                  .catch(() => []),
     safe(loadWeather('Delhi')),
     safe(loadWeather('Mumbai')),
     safe(loadWeather('Bengaluru')),
@@ -652,20 +898,20 @@ async function refresh() {
   renderCrypto(crypto);
   renderCommodities(commodities, forex.USD);
   renderWeather([
-    { city: 'Delhi',     data: wxDelhi     },
-    { city: 'Mumbai',    data: wxMumbai    },
-    { city: 'Bengaluru', data: wxBengaluru },
-    { city: 'Chennai',   data: wxChennai   },
+    { city:'Delhi',     data:wxDelhi     },
+    { city:'Mumbai',    data:wxMumbai    },
+    { city:'Bengaluru', data:wxBengaluru },
+    { city:'Chennai',   data:wxChennai   },
   ]);
   renderNews([
-    { label: 'NDTV India',     items: ndtv  },
-    { label: 'Economic Times', items: et    },
-    { label: 'The Hindu',      items: hindu },
+    { label:'NDTV India',     items:ndtv  },
+    { label:'Economic Times', items:et    },
+    { label:'The Hindu',      items:hindu },
   ]);
   try { renderTicker(markets, forex, crypto); } catch (_) {}
 
   document.getElementById('hdr-time').textContent =
-    'Updated ' + new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    'Updated ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
 
   busy = false;
   document.getElementById('btn-refresh').disabled = false;
