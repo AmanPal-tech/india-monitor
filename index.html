@@ -262,8 +262,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 </div>
 
 <script>
-const RAW = url => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-const GET = url => 'https://api.allorigins.win/get?url='  + encodeURIComponent(url);
+// corsproxy.io is more reliable than allorigins for Yahoo Finance
+const PROXY = url => 'https://corsproxy.io/?' + encodeURIComponent(url);
+const GET   = url => 'https://api.allorigins.win/get?url=' + encodeURIComponent(url);
 
 // ── Formatters ────────────────────────────────────────────
 function fmtINR(n) {
@@ -346,10 +347,25 @@ async function fetchRSS(feedUrl) {
 }
 
 // ── API loaders ───────────────────────────────────────────
-function loadYahooQuotes(symbols) {
-  return fetchJSON(RAW(
-    'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + symbols
-  )).then(d => d.quoteResponse?.result || []);
+// Fetch a single Yahoo Finance symbol via the v8 chart endpoint (more stable than v7 quote)
+async function loadYahooChart(symbol) {
+  const url = 'https://query2.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(symbol) + '?interval=1d&range=1d';
+  const d   = await fetchJSON(PROXY(url));
+  const res = d.chart?.result?.[0];
+  if (!res) throw new Error('No data for ' + symbol);
+  const meta = res.meta;
+  const price   = meta.regularMarketPrice;
+  const prev    = meta.previousClose || meta.chartPreviousClose;
+  const change  = price - prev;
+  const changePct = (change / prev) * 100;
+  return { symbol, shortName: meta.shortName || symbol, regularMarketPrice: price, regularMarketChange: change, regularMarketChangePercent: changePct };
+}
+
+async function loadYahooQuotes(symbolList) {
+  // symbolList is comma-separated; fetch each in parallel
+  const syms = symbolList.split(',').map(s => decodeURIComponent(s.trim()));
+  const results = await Promise.allSettled(syms.map(s => loadYahooChart(s)));
+  return results.filter(r => r.status === 'fulfilled').map(r => r.value);
 }
 
 async function loadForex() {
@@ -368,12 +384,39 @@ function loadCrypto() {
   );
 }
 
-function loadWeather(city) {
-  return fetchJSON(RAW('https://wttr.in/' + encodeURIComponent(city) + '?format=j1'))
-    .then(d => {
-      const c = d.current_condition[0];
-      return { temp: c.temp_C, feels: c.FeelsLikeC, humidity: c.humidity, desc: c.weatherDesc[0].value, wind: c.windspeedKmph };
-    });
+// Open-Meteo: free, no key, CORS-friendly, no proxy needed
+const CITIES_COORDS = {
+  'Delhi':     { lat: 28.61, lon: 77.21 },
+  'Mumbai':    { lat: 19.08, lon: 72.88 },
+  'Bengaluru': { lat: 12.97, lon: 77.59 },
+  'Chennai':   { lat: 13.08, lon: 80.27 },
+};
+function wmoDesc(code) {
+  if (code === 0)            return 'Clear sky';
+  if (code <= 2)             return 'Partly cloudy';
+  if (code === 3)            return 'Overcast';
+  if (code <= 49)            return 'Foggy';
+  if (code <= 59)            return 'Drizzle';
+  if (code <= 69)            return 'Rainy';
+  if (code <= 79)            return 'Snow';
+  if (code <= 82)            return 'Rain showers';
+  if (code <= 84)            return 'Heavy showers';
+  if (code <= 99)            return 'Thunderstorm';
+  return 'Unknown';
+}
+async function loadWeather(city) {
+  const { lat, lon } = CITIES_COORDS[city] || {};
+  if (!lat) throw new Error('Unknown city');
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&current=temperature_2m,weathercode,windspeed_10m,relativehumidity_2m&timezone=Asia%2FKolkata`;
+  const d = await fetchJSON(url);
+  const c = d.current;
+  return {
+    temp:     Math.round(c.temperature_2m),
+    humidity: c.relativehumidity_2m,
+    wind:     Math.round(c.windspeed_10m),
+    desc:     wmoDesc(c.weathercode),
+  };
 }
 
 // ── Renderers ─────────────────────────────────────────────
@@ -574,11 +617,11 @@ async function refresh() {
     wxDelhi, wxMumbai, wxBengaluru, wxChennai,
     ndtv, et, hindu
   ] = await Promise.all([
-    loadYahooQuotes('%5ENSEI,%5EBSESN')                              .catch(() => []),
+    loadYahooQuotes('^NSEI,^BSESN')                                   .catch(() => []),
     loadYahooQuotes('RELIANCE.NS,TCS.NS,HDFCBANK.NS,INFY.NS,WIPRO.NS').catch(() => []),
-    loadForex()                                                       .catch(() => ({})),
-    loadCrypto()                                                      .catch(() => ({})),
-    loadYahooQuotes('GC%3DF,SI%3DF,CL%3DF')                         .catch(() => []),
+    loadForex()                                                        .catch(() => ({})),
+    loadCrypto()                                                       .catch(() => ({})),
+    loadYahooQuotes('GC=F,SI=F,CL=F')                                 .catch(() => []),
     safe(loadWeather('Delhi')),
     safe(loadWeather('Mumbai')),
     safe(loadWeather('Bengaluru')),
